@@ -4,16 +4,22 @@
 from node import Node
 import drawtree
 
+
 class AVLTree:
     def __init__(self):
         self.root = None
         self.leaf = Node(None)
         self.leaf.height = -1
 
+        self.nodes_dict_aux = {}
         self.nodes_dict = {}
-        self.nodes_height_dict = {}
 
     def insert(self, key):
+        """
+        Insert key values in tree
+        :param key: numeric.
+        :return: self.nodes_height_dict a dict where keys are tuple (parent, height) and values are the children.
+        """
         node = Node(key)
         node.left = self.leaf
         node.right = self.leaf
@@ -27,7 +33,7 @@ class AVLTree:
             while current:
                 if current == self.leaf:
                     break
-
+                node.height += 1
                 parent = current
                 if node.key < current.key:
                     current = current.left
@@ -46,46 +52,60 @@ class AVLTree:
             self.calculate_height(node)
             self.fix_violation(node)
 
-            self.nodes_dict = {}
+            # Because fixing the violations mess up the heights of each node we have to first create a dict where the
+            # keys are the parents and the values are a list of tuples with the childs and their heights.
+            self.nodes_dict_aux = {}  # a dict where keys are parent and values is tuples with child and ir height.
             self.prepare_nodes_dict()
 
-            self.nodes_height_dict = {}
+            self.nodes_dict = {}  # a dict where keys are tuple with parent and chid height and values is tuples
+                                  # with child.
             self.prepare_points()
 
-            return self.nodes_height_dict
+            return self.nodes_dict
 
         return None
 
     def prepare_nodes_dict(self, node=None, flag=0):
+        """
+        Recursion function to create dict where the keys are the parents and the values are a list of tuples with the
+        childs and their heights.
+        :param node: node object.
+        :param flag: integer who indicate if node is left or right child.
+        """
         if not node:
             node = self.root
 
         if node != self.root and node != self.leaf:
             height = self.calculate_real_height(node)
-            if not (node.parent.key in self.nodes_dict):
-                self.nodes_dict[node.parent.key] = [None, None]
-            self.nodes_dict[node.parent.key][flag] = (node.key, height)
+            if not (node.parent.key in self.nodes_dict_aux):
+                self.nodes_dict_aux[node.parent.key] = [None, None]
+            self.nodes_dict_aux[node.parent.key][flag] = (node.key, height)
 
         if node != self.leaf:
             self.prepare_nodes_dict(node.left, 0)
             self.prepare_nodes_dict(node.right, 1)
 
-    def prepare_points(self, node=None, flag=0):
-        for key in self.nodes_dict:
-            nodes = self.nodes_dict[key]
+    def prepare_points(self):
+        for key in self.nodes_dict_aux:
+            nodes = self.nodes_dict_aux[key]
             if nodes[0] and nodes[1]:
                 _, height = min(nodes, key=lambda x:x[:][1])
                 # print(nodes[0][0], nodes[1][0], height)
-                self.nodes_height_dict[key, height] = [nodes[0][0], nodes[1][0]]
+                self.nodes_dict[key, height] = [nodes[0][0], nodes[1][0]]
             else:
                 if nodes[0]:
                     height = nodes[0][1]
-                    self.nodes_height_dict[key, height] = [nodes[0][0], None]
+                    self.nodes_dict[key, height] = [nodes[0][0], None]
                 else:
                     height = nodes[1][1]
-                    self.nodes_height_dict[key, height] = [None, nodes[1][0]]
+                    self.nodes_dict[key, height] = [None, nodes[1][0]]
 
     def calculate_real_height(self, node):
+        """
+        Calculate real height in tree of given node.
+        :param node: node object.
+        :return: numeric.
+        """
         height = 0
         current = node
         while current != self.root:
@@ -95,12 +115,21 @@ class AVLTree:
         return height
 
     def calculate_height(self, node):
+        """
+        Calculate left and right height of node.
+        :param node: node object.
+        """
         current = node
         while current:
             current.height = max(current.left.height, current.right.height) + 1
             current = current.parent
 
     def fix_violation(self, node):
+        """
+        Verify if is necessary rotate the node.
+        :param node: node object.
+        """
+        flag = False
         previous = node
         current = node.parent
         while current:
@@ -108,22 +137,32 @@ class AVLTree:
             fb2 = previous.left.height - previous.right.height
             if fb1 >= 2 and fb2 >= 0:
                 self.rotate_right(current)
+                flag = True
                 break
             if fb1 <= -2 and fb2 <= 0:
                 self.rotate_left(current)
+                flag = True
                 break
             if fb1 >= +2 and fb2 <= 0:
                 self.rotate_left(previous)
                 self.rotate_right(current)
+                flag = True
                 break
             if fb1 <= -2 and fb2 >= 0:
                 self.rotate_right(previous)
                 self.rotate_left(current)
+                flag = True
                 break
             previous = current
             current = current.parent
 
+        return flag
+
     def rotate_left(self, x):
+        """
+        Rotate node to left.
+        :param x: node object.
+        """
         y = x.right  # define y
         x.right = y.left  # x right now igual y left
         y.left.parent = x  # y left now is x left
@@ -143,6 +182,10 @@ class AVLTree:
         self.calculate_height(x)
 
     def rotate_right(self, x):
+        """
+        Rotate node to right.
+        :param x: node object.
+        """
         y = x.left
         x.left = y.right
         y.right.parent = x
@@ -162,6 +205,10 @@ class AVLTree:
         self.calculate_height(x)
 
     def walk_in_order(self, node=None):
+        """
+        Walking tree in pre-order.
+        :param node: node object.
+        """
         if not node:
             node = self.root
 
@@ -179,6 +226,10 @@ class AVLTree:
             self.walk_in_order(node.right)
 
     def walk_pos_order(self, node=None):
+        """
+        Walking tree in pos-order.
+        :param node: node object.
+        """
         if not node:
             node = self.root
 
@@ -194,6 +245,11 @@ class AVLTree:
             self.walk_pos_order(node.left)
 
     def search(self, value):
+        """
+        Search the node object that key is equal for given value.
+        :param value: numeric.
+        :return: node object.
+        """
         current = self.root
         while current and value != current.key:
             if not current.key:
@@ -207,6 +263,11 @@ class AVLTree:
         return current
 
     def minimum(self, node=None):
+        """
+        Search the minimum key in subtree that start from given node.
+        :param node: node object.
+        :return: node object.
+        """
         if not node:
             node = self.root
 
@@ -216,6 +277,11 @@ class AVLTree:
         return node
 
     def maximum(self, node=None):
+        """
+        Search the maximum key in subtree that start from given node.
+        :param node: node object.
+        :return: node object.
+        """
         if not node:
             node = self.root
 
@@ -225,6 +291,11 @@ class AVLTree:
         return node
 
     def successor(self, value):
+        """
+        Find the largest value in the tree directly above the given value.
+        :param value: numeric.
+        :return: object node.
+        """
         current = self.search(value)
         if not current:
             return False
@@ -243,6 +314,11 @@ class AVLTree:
         return node
 
     def predecessor(self, value):
+        """
+        It finds in the tree the lowest value directly below the given number.
+        :param value: numeric.
+        :return: node object.
+        """
         current = self.search(value)
         if not current:
             return False
@@ -261,6 +337,10 @@ class AVLTree:
         return node
 
     def remove(self, value):
+        """
+        Remove node where key is equal of given value.
+        :param value: numeric
+        """
         node = self.search(value)
 
         if node.left == self.leaf and node.right == self.leaf:
@@ -305,9 +385,9 @@ if __name__ == '__main__':
     bt = AVLTree()
 
     bt.insert(11)
-    bt.insert(-2)
+    bt.insert(2)
     bt.insert(14)
-    bt.insert(-1)
+    bt.insert(1)
     bt.insert(7)
     bt.insert(15)
     bt.insert(5)
@@ -348,4 +428,3 @@ if __name__ == '__main__':
     # bt.insert(8)
     # bt.insert(1)
     # bt.bt_draw()
-

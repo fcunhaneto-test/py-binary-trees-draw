@@ -95,7 +95,6 @@ class DrawTree:
         else:
             _, tree_height = max(self.nodes_dict.keys(), key=lambda x: x[1])
 
-
             leaf_num = 2 ** tree_height
             division = leaf_num + 1
             x_division_center = int(leaf_num / 2)
