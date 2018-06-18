@@ -1,5 +1,5 @@
 # py-binary-trees-draw
-Draw some binary tree types to help study them.
+Draw simple binary tree or avl tree to help study them.
 
 ## How to use
 
