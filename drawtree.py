@@ -50,10 +50,12 @@ class DrawTree:
         self.points_dict = {}
         self.lines_dict = {}
 
-        self.bt = binarytree.BinaryTree()
+        self.values_list = []
+
+        self.bt = avltree.AVLTree()
 
         self.enter_value = ""
-        self.node = None
+        self.value = None
 
         self.draw_tree()
 
@@ -101,8 +103,8 @@ class DrawTree:
         self.screen.blit(text_2, [75, 12])
 
     def draw_nodes(self):
-        if self.node:
-            nodes_dict = self.bt.insert(self.node)
+        if self.value:
+            nodes_dict = self.bt.insert(self.value)
 
             if nodes_dict:
                 _, tree_height = max(nodes_dict.keys(), key=lambda x: x[1])
@@ -130,13 +132,13 @@ class DrawTree:
 
                 pygame.draw.aaline(self.screen, self.BLACK, [x, y], [r, s], 2)
 
-    def type_is_numeric(self, num):
+    def type_isnot_numeric(self, num):
         if num.isnumeric():
-            self.node = int(self.enter_value)
+            self.value = int(self.enter_value)
             return False
         else:
             try:
-                self.node = float(self.enter_value)
+                self.value = float(self.enter_value)
                 return False
             except ValueError:
                 return True
@@ -158,8 +160,10 @@ class DrawTree:
                         self.enter_value += pressed
                         print(self.enter_value)
                     elif event.key == 13 or event.key == 271:
-                        if self.type_is_numeric(self.enter_value):
+                        if self.type_isnot_numeric(self.enter_value):
                             print(self.enter_value)
+                        else:
+                            self.values_list.append(self.enter_value)
                         self.enter_value = ""
                     elif event.key == 27:
                         pygame.quit()
