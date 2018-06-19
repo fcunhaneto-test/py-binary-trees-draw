@@ -26,6 +26,7 @@ class DrawTree:
         self.WHITE = (255, 255, 255)
         self.RED = (255, 0, 0)
         self.BLUE = (0, 0, 255)
+        self.GRAY = (190, 190, 190)
 
         self.RADIUS = 25
 
@@ -47,6 +48,10 @@ class DrawTree:
         self.font_1 = pygame.font.SysFont('Arial', 16, True, False)
         self.font_2 = pygame.font.SysFont('Arial', 12, True, False)
 
+        self.FPS = 30
+        self.cursor = 0
+        self.cursor_factor = int(self.FPS * 0.75)
+
         self.points_dict = {}
         self.lines_dict = {}
 
@@ -59,6 +64,7 @@ class DrawTree:
         self.draw_tree()
 
     def draw_input(self):
+        self.cursor += 1
         pygame.draw.rect(self.screen, self.BLACK, [5, 5, 60, 30], 1)
         pygame.draw.rect(self.screen, self.BLACK, [70, 5, 150, 30], 1)
 
@@ -66,6 +72,13 @@ class DrawTree:
         self.screen.blit(text_1, [10, 12])
 
         text_2 = self.font_1.render(str(self.enter_value), True, self.BLACK)
+
+        _, _, font_x, font_y = text_2.get_rect()
+        xi = 75 + font_x + 2
+        if self.cursor < self.cursor_factor:
+            pygame.draw.line(self.screen, self.GRAY, [xi, 8], [xi, 29], 10)
+        else:
+            self.cursor = 0
 
         self.screen.blit(text_2, [75, 12])
 
@@ -188,7 +201,7 @@ class DrawTree:
 
             self.draw_nodes()
 
-            clock.tick(30)
+            clock.tick(self.FPS)
 
             pygame.display.update()
 
