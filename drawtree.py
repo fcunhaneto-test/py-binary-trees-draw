@@ -3,7 +3,8 @@
 
 import os
 import pygame
-import binarytree
+from screeninfo import get_monitors
+import binarytest
 import avltree
 
 
@@ -13,36 +14,40 @@ class DrawTree:
 
         self.key_dict = {256: '0', 48: '0', 257: '1', 49: '1', 258: '2', 50: '2', 259: '3', 51: '3', 260: '4', 52: '4',
                          261: '5', 53: '5', 262: '6', 54: '6', 263: '7', 55: '7', 264: '8', 56: '8', 265: '9', 57: '9',
-                         266: '.', 46: '.',
-                         97: 'a', 98: 'b', 99: 'c', 100: 'd', 101: 'e', 102: 'f', 103: 'g', 104: 'h', 105: 'i', 106: 'j',
-                         107: 'k', 108: 'l', 109: 'm', 110: 'n', 111: 'o', 112: 'p', 113: 'q', 114: 'r', 115: 's',
-                         116: 't', 117: 'u', 118: 'v', 119: 'w', 120: 'x', 121: 'y', 122: 'z',
+                         266: '.', 46: '.', 97: 'a', 98: 'b', 99: 'c', 100: 'd', 101: 'e', 102: 'f', 103: 'g', 104: 'h',
+                         105: 'i', 106: 'j', 107: 'k', 108: 'l', 109: 'm', 110: 'n', 111: 'o', 112: 'p', 113: 'q',
+                         114: 'r', 115: 's', 116: 't', 117: 'u', 118: 'v', 119: 'w', 120: 'x', 121: 'y', 122: 'z',
                          65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G', 72: 'H', 73: 'I', 74: 'J',
                          75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 80: 'P', 81: 'Q', 82: 'R', 83: 'S', 84: 'T',
-                         85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z',
+                         85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z', 60: '<', 61: '=', 62: '<',
                          } # 32: 'space', 27: 'esc', 273: 'up', 274: 'down', 276: 'left', 275: 'right'
 
         self.BLACK = (0, 0, 0)
         self.WHITE = (255, 255, 255)
         self.RED = (255, 0, 0)
         self.BLUE = (0, 0, 255)
+        self.YELLOW = (255, 255, 0)
         self.GRAY = (190, 190, 190)
 
         self.RADIUS = 25
+
+        self.y_factor = 100
+        self.x_factor = None
 
         # Define windows size
         self.window_x = 1024
         self.window_y = 768
 
-        self.y_factor = 100
-        self.x_factor = None
-
         windowInfo = pygame.display.Info()
         monitorWidth = windowInfo.current_w
         monitorHeight = windowInfo.current_h
+
         os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitorWidth - self.window_x) / 2, (monitorHeight - self.window_y) / 2)
 
         self.screen = pygame.display.set_mode((self.window_x, self.window_y), 0, 32)
+
+        self.FPS = 30
+
         pygame.display.set_caption("Draw Tree")
 
         self.font_1 = pygame.font.SysFont('Arial', 16, True, False)
@@ -60,6 +65,8 @@ class DrawTree:
         self.nodes_dict = {}
         self.value_list = []
         self.enter_value = ""
+
+        self.image = pygame.image.load('images/error_not_tree_en.png').convert()
 
         self.draw_tree()
 
@@ -82,74 +89,75 @@ class DrawTree:
 
         self.screen.blit(text_2, [75, 12])
 
-    def type_is_numeric(self, num):
-        if num.isnumeric():
-            value = int(self.enter_value)
-            return value
+    def type_is_numeric(self, value):
+        if value.isnumeric():
+            return int(value)
         else:
             try:
-                value = float(self.enter_value)
-                return value
+                num = float(value)
+                return num
             except ValueError:
                 return False
 
-    def make_points_lines(self, value):
-        self.nodes_dict = self.bt.insert(value)
+    def input_values(self, value):
+        self.bt.insert(value)
+        self.make_points_lines()
 
-        if not self.nodes_dict:
-            x_division_center = int(2 / 2)
-            division_pixel = int(self.window_x / 3)
-            division_pixel_center = int(division_pixel / 2)
-
-            root_x = (x_division_center * division_pixel) + division_pixel_center
+    def make_points_lines(self):
+        if self.bt:
+            root_x = int(self.window_x / 2)
             root_y = 0
 
             self.points_dict[self.bt.root.key] = (root_x, root_y + self.RADIUS)
+            if self.bt.nodes_dict:
+                _, tree_height = max(self.bt.nodes_dict.keys(), key=lambda x: x[1])
+
+                leaf_num = 2 ** tree_height
+                division = leaf_num + 1
+                x_division_center = int(leaf_num / 2)
+                division_pixel = int(self.window_x / division)
+                division_pixel_center = int(division_pixel / 2)
+
+                root_x = (x_division_center * division_pixel) + division_pixel_center
+                root_y = 0
+
+                self.points_dict = {self.bt.root.key: (root_x, root_y + self.RADIUS)}
+
+                lines = {}
+                for key in self.bt.nodes_dict:
+                    parent, height = key
+                    left, right = self.bt.nodes_dict[key]
+                    parent_x, parent_y = self.points_dict[parent]
+                    if left:
+                        x = abs(parent_x - int(root_x / (2 ** height)))
+                        y = self.y_factor * height
+                        self.points_dict[left] = (x, y)
+                        line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
+                        lines[(parent, left)] = line
+                    if right:
+                        x = abs(parent_x + int(root_x / (2 ** height)))
+                        y = self.y_factor * height
+                        self.points_dict[right] = (x, y)
+                        line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
+                        lines[(parent, right)] = line
+
+                    self.lines_dict = lines
+
         else:
-            _, tree_height = max(self.nodes_dict.keys(), key=lambda x: x[1])
-
-            leaf_num = 2 ** tree_height
-            division = leaf_num + 1
-            x_division_center = int(leaf_num / 2)
-            division_pixel = int(self.window_x / division)
-            division_pixel_center = int(division_pixel / 2)
-
-            root_x = (x_division_center * division_pixel) + division_pixel_center
-            root_y = 0
-
-            self.points_dict[self.bt.root.key] = (root_x, root_y + self.RADIUS)
-
-            lines = {}
-            for node in self.nodes_dict:
-                parent, height = node
-                left, right = self.nodes_dict[node]
-                parent_x, parent_y = self.points_dict[parent]
-                if left:
-                    x = abs(parent_x - int(root_x / (2**height)))
-                    y = self.y_factor * height
-                    self.points_dict[left] = (x, y)
-                    line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
-                    lines[(parent, left)] = line
-                if right:
-                    x = abs(parent_x + int(root_x / (2 ** height)))
-                    y = self.y_factor * height
-                    self.points_dict[right] = (x, y)
-                    line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
-                    lines[(parent, right)] = line
-
-                self.lines_dict = lines
+            image = pygame.image.load('images/error_not_tree_en.png').convert()
 
     def draw_nodes(self):
         if self.points_dict:
             for node in self.points_dict:
                 x, y = self.points_dict[node]
+                color = self.RED
 
                 text = self.font_2.render(str(node), True, self.BLACK)
                 _, _, font_x, font_y = text.get_rect()
                 font_x_delta = int(font_x - (self.RADIUS / 4))
                 font_y_delta = int(font_y - (self.RADIUS / 4))
 
-                pygame.draw.circle(self.screen, self.RED, (x, y), self.RADIUS, 2)
+                pygame.draw.circle(self.screen, color, (x, y), self.RADIUS, 2)
                 self.screen.blit(text, [x - font_x_delta, y - font_y_delta])
 
             for line in self.lines_dict:
@@ -169,23 +177,28 @@ class DrawTree:
                     pygame.quit()
                     exit()
                 if event.type == pygame.KEYUP:
-                    if (256 <= event.key <= 266) or (48 <= event.key <= 57) or event == 46:
+                    if (256 <= event.key <= 266) or (48 <= event.key <= 57) or event.key == 46:
                         pressed = self.key_dict[event.key]
                         self.enter_value += pressed
-                    elif (97 <= event.key <= 122) or (65 <= event.key <= 90):
+                    elif (97 <= event.key <= 122) or (65 <= event.key <= 90) or event.key == 61:
                         pressed = str.lower(self.key_dict[event.key])
                         self.enter_value += pressed
-                        print(self.enter_value)
                     elif event.key == 13 or event.key == 271:
                         value = self.type_is_numeric(self.enter_value)
                         if value:
-                            self.make_points_lines(value)
+                            self.input_values(value)
                             self.value_list.append(self.enter_value)
                         else:
                             if self.enter_value == 'bin':
-                                self.bt = binarytree.BinaryTree()
+                                self.bt = binarytest.BinaryTree()
                             elif self.enter_value == 'avl':
                                 self.bt = avltree.AVLTree()
+                            elif self.enter_value[0:3] == 'rm=':
+                                _, value = self.enter_value.split('=')
+                                num = self.type_is_numeric(value)
+                                self.bt.remove(num)
+                                self.make_points_lines()
+
                         self.enter_value = ""
                     elif event.key == 27:
                         pygame.quit()
@@ -199,9 +212,13 @@ class DrawTree:
 
             self.draw_input()
 
-            self.draw_nodes()
+            if self.bt:
+                self.draw_nodes()
+            else:
+                self.screen.blit(self.image, (283, 200))
+                pygame.draw.aaline(self.screen, self.RED, [110, 40], [424, 200], 2)
 
-            clock.tick(self.FPS)
+            clock.tick(30)
 
             pygame.display.update()
 
