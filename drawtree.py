@@ -1,4 +1,4 @@
-#!/home/francisco/Projects/Pycharm/py-draw-binary-trees/venv/bin/python
+#!/home/francisco/Projects/Pycharm/py-binary-trees-draw/venv/bin/python
 # -*- coding: utf-8 -*-
 
 import os
@@ -107,7 +107,6 @@ class DrawTree:
         if self.bt:
             root_x = int(self.window_x / 2)
             root_y = 0
-
             self.points_dict[self.bt.root.key] = (root_x, root_y + self.RADIUS)
             if self.bt.nodes_dict:
                 _, tree_height = max(self.bt.nodes_dict.keys(), key=lambda x: x[1])
