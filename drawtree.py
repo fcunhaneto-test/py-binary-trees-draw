@@ -197,6 +197,11 @@ class DrawTree:
                                 num = self.type_is_numeric(value)
                                 self.bt.remove(num)
                                 self.make_points_lines()
+                            elif self.enter_value[0:3] == 'rm=':
+                                _, value = self.enter_value.split('=')
+                                num = self.type_is_numeric(value)
+                                self.bt.remove(num)
+                                self.make_points_lines()
 
                         self.enter_value = ""
                     elif event.key == 27:
