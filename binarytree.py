@@ -364,7 +364,7 @@ class BinaryTree:
 
         # for child in children:
         #     if child:
-        #         change = self.search(child)
+        #         change = self.search_node(child)
         #         change.height -= 1
 
         if keys:
