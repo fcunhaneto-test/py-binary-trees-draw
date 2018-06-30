@@ -142,8 +142,6 @@ class DrawTree:
                         lines[(parent, right)] = line
 
                     self.lines_dict = lines
-
-
         else:
             image = pygame.image.load('images/error_not_tree_en.png').convert()
 
