@@ -4,7 +4,7 @@
 import os
 import pygame
 from screeninfo import get_monitors
-import binarytest_1
+import binarytree
 import avltree
 
 
@@ -127,6 +127,7 @@ class DrawTree:
                     parent, height = key
                     left, right = self.bt.nodes_dict[key]
                     parent_x, parent_y = self.points_dict[parent]
+
                     if left:
                         x = abs(parent_x - int(root_x / (2 ** height)))
                         y = self.y_factor * height
@@ -141,6 +142,7 @@ class DrawTree:
                         lines[(parent, right)] = line
 
                     self.lines_dict = lines
+
 
         else:
             image = pygame.image.load('images/error_not_tree_en.png').convert()
@@ -189,7 +191,7 @@ class DrawTree:
                             self.value_list.append(self.enter_value)
                         else:
                             if self.enter_value == 'bin':
-                                self.bt = binarytest_1.BinaryTree()
+                                self.bt = binarytree.BinaryTree()
                             elif self.enter_value == 'avl':
                                 self.bt = avltree.AVLTree()
                             elif self.enter_value[0:3] == 'rm=':

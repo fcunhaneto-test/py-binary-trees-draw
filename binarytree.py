@@ -50,9 +50,6 @@ class BinaryTree:
 
         return None
 
-    def recover_nodes_dict(self):
-        pass
-
     def walk_in_order(self, node=None):
         """
         Walking tree in pre-order.
@@ -108,7 +105,7 @@ class BinaryTree:
 
         return current
 
-    def search_children(self, node, children_list=[], flag=False):
+    def search_children(self, node, children_list, flag=False):
 
         if node != self.leaf:
             self.search_children(node.right, children_list, True)
@@ -227,7 +224,7 @@ class BinaryTree:
             del self.nodes_dict[node.parent.key, node.height]
 
     def _remove_if_one_child(self, node):
-        children = self.search_children(node)
+        children = self.search_children(node, list())
         keys = set()
 
         for child in children:
@@ -279,7 +276,8 @@ class BinaryTree:
     def _remove_if_two_children(self, node):
         successor = self.successor(node.key)
 
-        if successor == node.right:
+        if successor == node.right:             # case 1
+            self._recover_nd_rm_two_children_case1(node, successor)
             if node == node.parent.left:
                 node.parent.left = successor
             else:
@@ -288,7 +286,7 @@ class BinaryTree:
             successor.parent = node.parent
             successor.left = node.left
             successor.left.parent = successor
-        else:
+        else:                                   # case 2
             if node == node.parent.left:
                 node.parent.left = successor
             else:
@@ -333,13 +331,52 @@ class BinaryTree:
                 successor.parent = None
                 self.root = successor
 
+    def _recover_nd_rm_two_children_case1(self, node, successor):
+        left, right = self.nodes_dict[(node.parent.key, node.parent.height+1)]
+        if node == node.parent.left:
+            self.nodes_dict[(node.parent.key, node.parent.height+1)] = [successor.key, right]
+        else:
+            self.nodes_dict[(node.parent.key, node.parent.height+1)] = [left, successor.key]
+
+        # in nodes we have to del where remove node is key
+        del self.nodes_dict[(node.key, node.height+1)]
+
+        # in nodes dict we have to recreate where successor is key and delete the old key
+        # but we have to test if successor is a leaf when that key don't exist
+        if (successor.key, successor.height+1) in self.nodes_dict:
+            del self.nodes_dict[(successor.key, successor.height+1)]
+            self.nodes_dict[(successor.key, successor.height)] = [node.left.key, successor.right.key]
+        elif node.left != self.leaf:
+            self.nodes_dict[(successor.key, successor.height)] = [node.left.key, None]
+
+        children = self.search_children(successor, list())
+        keys = set()
+        # reset node class heights
+        successor.height -= 1
+        for child in children:
+            # create a key set with children of node
+            # we have do to this before we reset node key by new key in nodes dict
+            if (child.parent.key, child.height) in self.nodes_dict:
+                keys.add((child.parent.key, child.height))
+            # reset the height in node class
+            child.height -= 1
+
+        # reset keys for children of node by new keys with new heights
+        for key in keys:
+            node_key, height = key
+            if key in self.nodes_dict:
+                left, right = self.nodes_dict[key]
+                del self.nodes_dict[key]
+                self.nodes_dict[(node_key, height - 1)] = [left, right]
+
+        self.arrange_nodes_dict()
+
     def arrange_nodes_dict(self):
         aux1 = sorted(self.nodes_dict.keys(), key=lambda key: key[1])
         aux2 = {}
         for key in aux1:
             aux2[key] = self.nodes_dict[key]
         self.nodes_dict = aux2
-
 
 
 if __name__ == '__main__':
@@ -356,11 +393,37 @@ if __name__ == '__main__':
     bt.insert(80)
     bt.insert(90)
     bt.insert(85)
+    bt.insert(30)
+    bt.insert(40)
     bt.walk_in_order()
     print('***********************************************')
     print(bt.nodes_dict)
     print('***********************************************')
     bt.remove(25)
+    print('***********************************************')
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
+    bt.remove(15)
+    print('***********************************************')
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
+    bt.remove(75)
+    print('***********************************************')
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
+    bt.remove(85)
     print('***********************************************')
     print('node\tparent\tleft\tright\theight\tfb')
     print('***********************************************')
