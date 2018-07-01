@@ -4,7 +4,7 @@
 import os
 import pygame
 from screeninfo import get_monitors
-import binarytree
+import binarytest
 import avltree
 
 
@@ -38,11 +38,11 @@ class DrawTree:
         self.window_x = 1024
         self.window_y = 768
 
-        windowInfo = pygame.display.Info()
-        monitorWidth = windowInfo.current_w
-        monitorHeight = windowInfo.current_h
+        window_info = pygame.display.Info()
+        monitor_width = window_info.current_w
+        monitor_height = window_info.current_h
 
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitorWidth - self.window_x) / 2, (monitorHeight - self.window_y) / 2)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitor_width - self.window_x) / 2, (monitor_height - self.window_y) / 2)
 
         self.screen = pygame.display.set_mode((self.window_x, self.window_y), 0, 32)
 
@@ -189,7 +189,7 @@ class DrawTree:
                             self.value_list.append(self.enter_value)
                         else:
                             if self.enter_value == 'bin':
-                                self.bt = binarytree.BinaryTree()
+                                self.bt = binarytest.BinaryTree()
                             elif self.enter_value == 'avl':
                                 self.bt = avltree.AVLTree()
                             elif self.enter_value[0:3] == 'rm=':

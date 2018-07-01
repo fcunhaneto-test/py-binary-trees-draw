@@ -8,9 +8,10 @@ dir_module = os.path.dirname(os.path.abspath(__file__))
 dir_module, _ = dir_module.rsplit('/', 1)
 sys.path.extend([dir_module])
 
-import binarytest
+import binarytree
 import avltree
 import uteis
+
 
 def handle_trees(bt=None):
     uteis.clear()
@@ -30,7 +31,7 @@ def handle_trees(bt=None):
             handle_trees()
 
         if op == 1:
-            bt = binarytest.BinaryTree()
+            bt = binarytree.BinaryTree()
         elif op == 2:
             bt = avltree.AVLTree()
         elif op == 0:
