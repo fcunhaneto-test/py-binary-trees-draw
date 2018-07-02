@@ -381,14 +381,14 @@ class BinaryTree:
         self.nodes_dict[(successor.key, node.height+1)] = [node.left.key, node.right.key]
         del self.nodes_dict[(node.key, node.height+1)]
 
-        if successor.right != self.leaf and node.right.key != self.leaf:
+        if successor.right != self.leaf and successor.parent.right != self.leaf:
             self.nodes_dict[(successor.parent.key, successor.height)] = [successor.right.key, successor.parent.right.key]
-        elif successor.right == self.leaf and node.right.key != self.leaf:
-            self.nodes_dict[(successor.parent.key, successor.height)] = [None, successor.parent.right.key]
-        elif successor.right != self.leaf and node.right.key == self.leaf:
+        elif successor.right != self.leaf and successor.parent.right == self.leaf:
             self.nodes_dict[(successor.parent.key, successor.height)] = [successor.right.key, None]
+        elif successor.right == self.leaf and successor.parent.right != self.leaf:
+            self.nodes_dict[(successor.parent.key, successor.height)] = [None, successor.parent.right.key]
         else:
-            del self.nodes_dict[(successor.parent.key, successor.heigh)]
+            del self.nodes_dict[(successor.parent.key, successor.height)]
 
         # the successor replaces the node so it receives the height of the node
         successor.height = node.height
