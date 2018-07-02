@@ -224,16 +224,7 @@ class BinaryTree:
             del self.nodes_dict[node.parent.key, node.height]
 
     def _remove_if_one_child(self, node):
-        children = self.search_children(node, list())
-        keys = set()
-
-        for child in children:
-            # create a key set with children of node
-            # we have do to this before we reset node key by new key in nodes dict
-            if (child.parent.key, child.height) in self.nodes_dict:
-                keys.add((child.parent.key, child.height))
-            # reset the height in node class
-            child.height -= 1
+        self._recovery_children_height(node)
 
         left, right = self.nodes_dict[(node.parent.key, node.height)]
 
@@ -258,16 +249,6 @@ class BinaryTree:
 
         node.left.parent = node.parent
         node.right.parent = node.parent
-
-        # reset keys for children of node by new keys with new heights
-        for key in keys:
-            node_key, height = key
-            if node_key == node.key:
-                del self.nodes_dict[key]
-            else:
-                left, right = self.nodes_dict[key]
-                del self.nodes_dict[key]
-                self.nodes_dict[(node_key, height-1)] = [left, right]
 
         del node
 
@@ -350,24 +331,10 @@ class BinaryTree:
         elif node.left != self.leaf:
             self.nodes_dict[(successor.key, node.height+1)] = [node.left.key, None]
 
-        children = self.search_children(successor, list())
-        keys = set()
         # reset node class heights
         successor.height -= 1
-        for child in children:
-            # create a key set with children of node
-            # we have do to this before we reset node key by new key in nodes dict
-            if (child.parent.key, child.height) in self.nodes_dict:
-                keys.add((child.parent.key, child.height))
-            # reset the height in node class
-            child.height -= 1
-        # reset keys for children of node by new keys with new heights
-        for key in keys:
-            node_key, height = key
-            if key in self.nodes_dict:
-                left, right = self.nodes_dict[key]
-                del self.nodes_dict[key]
-                self.nodes_dict[(node_key, height - 1)] = [left, right]
+
+        self._recovery_children_height(successor)
 
         self.arrange_nodes_dict()
 
@@ -393,8 +360,14 @@ class BinaryTree:
         # the successor replaces the node so it receives the height of the node
         successor.height = node.height
 
-        children = self.search_children(successor, list())
+        self._recovery_children_height(successor)
+
+        self.arrange_nodes_dict()
+
+    def _recovery_children_height(self, node):
+        children = self.search_children(node, list())
         keys = set()
+
         for child in children:
             # create a key set with children of node
             # we have do to this before we reset node key by new key in nodes dict
@@ -406,12 +379,12 @@ class BinaryTree:
         # reset keys for children of node by new keys with new heights
         for key in keys:
             node_key, height = key
-            if key in self.nodes_dict:
+            if node_key == node.key:
+                del self.nodes_dict[key]
+            else:
                 left, right = self.nodes_dict[key]
                 del self.nodes_dict[key]
                 self.nodes_dict[(node_key, height - 1)] = [left, right]
-
-        self.arrange_nodes_dict()
 
     def arrange_nodes_dict(self):
         aux1 = sorted(self.nodes_dict.keys(), key=lambda key: key[1])
