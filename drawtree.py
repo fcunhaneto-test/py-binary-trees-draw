@@ -3,8 +3,7 @@
 
 import os
 import pygame
-from screeninfo import get_monitors
-import binarytest
+import binarytree
 import avltree
 
 
@@ -189,7 +188,7 @@ class DrawTree:
                             self.value_list.append(self.enter_value)
                         else:
                             if self.enter_value == 'bin':
-                                self.bt = binarytest.BinaryTree()
+                                self.bt = binarytree.BinaryTree()
                             elif self.enter_value == 'avl':
                                 self.bt = avltree.AVLTree()
                             elif self.enter_value[0:3] == 'rm=':
