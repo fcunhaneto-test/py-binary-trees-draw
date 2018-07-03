@@ -1,13 +1,7 @@
 #!/home/francisco/Projects/Pycharm/py-binary-trees-draw/venv/bin/python
 # -*- coding: utf-8 -*-
 
-
 import sys
-import os
-dir_module = os.path.dirname(os.path.abspath(__file__))
-dir_module, _ = dir_module.rsplit('/', 1)
-sys.path.extend([dir_module])
-
 import binarytree
 import avltree
 import uteis
@@ -51,7 +45,6 @@ def handle_trees(bt=None):
         print('4 - Remove node')
         print('5 - Successor')
         print('6 - Predecessor')
-        print('7 - cls tree')
         print('0 - Exit')
         print('***************************')
         print()
@@ -112,11 +105,8 @@ def handle_trees(bt=None):
             else:
                 print('Not found.')
                 print('*********************************************************')
-        elif op == 7:
-            del bt
-            handle_trees()
         elif op == 0:
-            return bt
+            sys.exit(0)
         else:
             print('Invalid option.')
             input('Press enter to return for options.\n')
