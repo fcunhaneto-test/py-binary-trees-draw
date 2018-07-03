@@ -19,7 +19,7 @@ class DrawTree:
                          65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G', 72: 'H', 73: 'I', 74: 'J',
                          75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 80: 'P', 81: 'Q', 82: 'R', 83: 'S', 84: 'T',
                          85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z', 60: '<', 61: '=', 62: '<',
-                         } # 32: 'space', 27: 'esc', 273: 'up', 274: 'down', 276: 'left', 275: 'right'
+                         }  # 32: 'space', 27: 'esc', 273: 'up', 274: 'down', 276: 'left', 275: 'right'
 
         self.BLACK = (0, 0, 0)
         self.WHITE = (255, 255, 255)
@@ -41,7 +41,8 @@ class DrawTree:
         monitor_width = window_info.current_w
         monitor_height = window_info.current_h
 
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitor_width - self.window_x) / 2, (monitor_height - self.window_y) / 2)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (
+        (monitor_width - self.window_x) / 2, (monitor_height - self.window_y) / 2)
 
         self.screen = pygame.display.set_mode((self.window_x, self.window_y), 0, 32)
 

@@ -72,7 +72,7 @@ class AVLTree:
             fb = node.left.height - node.right.height
             if node.parent:
                 print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(node.key, node.parent.key, node.left.key, node.right.key,
-                                                       node.height, fb))
+                                                            node.height, fb))
             else:
                 print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(node.key, None, node.left.key, node.right.key,
                                                             node.height, fb))
@@ -92,7 +92,7 @@ class AVLTree:
             self.walk_pos_order(node.right)
             if node.parent:
                 print('{0}\t{1}\t{2}\t{3}\t{4}'.format(node.key, node.parent.key, node.left.key, node.right.key,
-                                                  node.height, ))
+                                                       node.height, ))
             else:
                 print('{0}\t{1}\t{2}\t{3}\t{4}'.format(node.key, None, node.left.key, node.right.key, node.height))
 
@@ -342,7 +342,7 @@ class AVLTree:
         for key in self.nodes_dict_aux:
             nodes = self.nodes_dict_aux[key]
             if nodes[0] and nodes[1]:
-                _, height = min(nodes, key=lambda x:x[:][1])
+                _, height = min(nodes, key=lambda x: x[:][1])
                 # print(nodes[0][0], nodes[1][0], height)
                 self.nodes_dict[key, height] = [nodes[0][0], nodes[1][0]]
             else:
