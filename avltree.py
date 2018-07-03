@@ -1,4 +1,4 @@
-#!/home/francisco/Projects/Pycharm/py-draw-binary-trees/venv/bin/python3
+#!/home/francisco/Projects/Pycharm/py-binary-trees-draw/venv/bin/python
 # -*- coding: utf-8 -*-
 
 from node import Node
@@ -49,160 +49,14 @@ class AVLTree:
             else:
                 parent.right = node
 
-            self.calculate_height(node)
-            self.fix_violation(node)
+            self._calculate_height(node)
+            self._fix_violation(node)
 
-            # Because fixing the violations mess up the heights of each node we have to first create a dict where the
-            # keys are the parents and the values are a list of tuples with the childs and their heights.
-            self.nodes_dict_aux = {}  # a dict where keys are parent and values is tuples with child and ir height.
-            self.prepare_nodes_dict()
-
-            self.nodes_dict = {}  # a dict where keys are tuple with parent and chid height and values is tuples
-                                  # with child.
-            self.prepare_points()
+            self._recovery_nodes_dict()
 
             return self.nodes_dict
 
         return None
-
-    def prepare_nodes_dict(self, node=None, flag=0):
-        """
-        Recursion function to create dict where the keys are the parents and the values are a list of tuples with the
-        childs and their heights.
-        :param node: node object.
-        :param flag: integer who indicate if node is left or right child.
-        """
-        if not node:
-            node = self.root
-
-        if node != self.root and node != self.leaf:
-            height = self.calculate_real_height(node)
-            if not (node.parent.key in self.nodes_dict_aux):
-                self.nodes_dict_aux[node.parent.key] = [None, None]
-            self.nodes_dict_aux[node.parent.key][flag] = (node.key, height)
-
-        if node != self.leaf:
-            self.prepare_nodes_dict(node.left, 0)
-            self.prepare_nodes_dict(node.right, 1)
-
-    def prepare_points(self):
-        for key in self.nodes_dict_aux:
-            nodes = self.nodes_dict_aux[key]
-            if nodes[0] and nodes[1]:
-                _, height = min(nodes, key=lambda x:x[:][1])
-                # print(nodes[0][0], nodes[1][0], height)
-                self.nodes_dict[key, height] = [nodes[0][0], nodes[1][0]]
-            else:
-                if nodes[0]:
-                    height = nodes[0][1]
-                    self.nodes_dict[key, height] = [nodes[0][0], None]
-                else:
-                    height = nodes[1][1]
-                    self.nodes_dict[key, height] = [None, nodes[1][0]]
-
-    def calculate_real_height(self, node):
-        """
-        Calculate real height in tree of given node.
-        :param node: node object.
-        :return: numeric.
-        """
-        height = 0
-        current = node
-        while current != self.root:
-            height += 1
-            current = current.parent
-
-        return height
-
-    def calculate_height(self, node):
-        """
-        Calculate left and right height of node.
-        :param node: node object.
-        """
-        current = node
-        while current:
-            current.height = max(current.left.height, current.right.height) + 1
-            current = current.parent
-
-    def fix_violation(self, node):
-        """
-        Verify if is necessary rotate the node.
-        :param node: node object.
-        """
-        flag = False
-        previous = node
-        current = node.parent
-        while current:
-            fb1 = current.left.height - current.right.height
-            fb2 = previous.left.height - previous.right.height
-            if fb1 >= 2 and fb2 >= 0:
-                self.rotate_right(current)
-                flag = True
-                break
-            if fb1 <= -2 and fb2 <= 0:
-                self.rotate_left(current)
-                flag = True
-                break
-            if fb1 >= +2 and fb2 <= 0:
-                self.rotate_left(previous)
-                self.rotate_right(current)
-                flag = True
-                break
-            if fb1 <= -2 and fb2 >= 0:
-                self.rotate_right(previous)
-                self.rotate_left(current)
-                flag = True
-                break
-            previous = current
-            current = current.parent
-
-        return flag
-
-    def rotate_left(self, x):
-        """
-        Rotate node to left.
-        :param x: node object.
-        """
-        y = x.right  # define y
-        x.right = y.left  # x right now igual y left
-        y.left.parent = x  # y left now is x left
-        y.parent = x.parent  # y parent is x parent
-
-        if x == self.root:  # if x is root now y is root
-            self.root = y
-        elif x == x.parent.left:
-            x.parent.left = y  # if x is the left child, then y is the left child
-        else:
-            x.parent.right = y  # if x is the right child, then y is the right child
-
-        y.left = x  # y left now is x
-        x.parent = y  # x parent now is y
-
-        x.height -= 2
-        self.calculate_height(x)
-
-    def rotate_right(self, x):
-        """
-        Rotate node to right.
-        :param x: node object.
-        """
-        y = x.left
-        x.left = y.right
-        y.right.parent = x
-        y.parent = x.parent
-
-        if x == self.root:  # if x is root now y is root
-            self.root = y
-        elif x == x.parent.left:
-            x.parent.left = y  # if x is the left child, then y is the left child
-        else:
-            x.parent.right = y  # if x is the right child, then y is the right child
-
-        y.right = x
-        x.parent = y
-
-        x.height -= 2
-        self.calculate_height(x)
 
     def walk_in_order(self, node=None):
         """
@@ -343,10 +197,14 @@ class AVLTree:
         """
         node = self.search(value)
 
-        if node.left == self.leaf and node.right == self.leaf:
+        if node == self.root:
+            self._remove_root()
+        elif node.left == self.leaf and node.right == self.leaf:
             self._remove_if_leaf(node)
         elif (node.left == self.leaf) ^ (node.right == self.leaf):
             self._remove_if_one_child(node)
+        else:
+            self._remove_if_two_childs(node)
 
     def _remove_if_leaf(self, node):
         parent = node.parent
@@ -358,56 +216,306 @@ class AVLTree:
         node = None
         del node
 
-        self.calculate_height(parent)
-        self.fix_violation(parent)
+        self._calculate_height(parent)
+        self._fix_violation(parent)
+
+        self._recovery_nodes_dict()
 
     def _remove_if_one_child(self, node):
-        parent = node.parent
-        if parent.left == node:
+        if node.parent.left == node:
             if node.right == self.leaf:
-                parent.left = node.left
+                node.parent.left = node.left
             else:
-                parent.left = node.right
+                node.parent.left = node.right
         else:
             if node.right == self.leaf:
-                parent.right = node.left
+                node.parent.right = node.left
             else:
-                parent.right = node.right
+                node.parent.right = node.right
 
-        node = None
-        del node
+        node.left.parent = node.parent
+        node.right.parent = node.parent
 
-        self.calculate_height(parent)
-        self.fix_violation(parent)
+        self._calculate_height(node.parent)
+        self._fix_violation(node.parent)
+
+        self._recovery_nodes_dict()
+
+    def _remove_if_two_childs(self, node):
+        successor = self.successor(node.key)
+
+        if successor == node.right:
+            if node == node.parent.left:
+                node.parent.left = successor
+            else:
+                node.parent.right = successor
+
+            successor.parent = node.parent
+            successor.left = node.left
+            successor.left.parent = successor
+        else:
+            if node == node.parent.left:
+                node.parent.left = successor
+            else:
+                node.parent.right = successor
+
+            successor.parent.left = successor.right
+            successor.left = node.left
+            successor.right = node.right
+
+            node.right.parent = successor
+            node.left.parent = successor
+            successor.parent = node.parent
+
+        self._calculate_height(node.parent)
+        self._fix_violation(node.parent)
+
+        self._recovery_nodes_dict()
+
+    def _remove_root(self):
+        if self.root.left == self.leaf and self.root.right == self.leaf:
+            self.root = None
+        elif (self.root.left == self.leaf) ^ (self.root.right == self.leaf):
+            if self.root.left != self.leaf:
+                self.root = self.root.left
+            else:
+                self.root = self.root.right
+
+            self.root.parent = None
+        else:
+            successor = self.successor(self.root.key)
+            if successor == self.root.right:
+
+                successor.parent = None
+                successor.left = self.root.left
+                self.root.left.parent = successor
+                self.root = successor
+            else:
+                if successor.right:
+                    successor.right.parent = successor.parent
+
+                successor.parent.left = successor.right
+                successor.left = self.root.left
+                successor.right = self.root.right
+
+                self.root.left.parent = successor
+                self.root.right.parent = successor
+                successor.parent = None
+                self.root = successor
+
+        self._calculate_height(self.root)
+        self._fix_violation(self.root)
+
+        self._recovery_nodes_dict()
+
+    def _recovery_nodes_dict(self):
+        # Because fixing the violations mess up the heights of each node we have to first create a dict where the
+        # keys are the parents and the values are a list of tuples with the childs and their heights.
+        self.nodes_dict_aux = {}  # a dict where keys are parent and values is tuples with child and ir height.
+        self._make_nodes_dict_aux()
+
+        self.nodes_dict = {}  # a dict where keys are tuple with parent and chid height and values is tuples
+        # with child.
+        self._make_nodes_dict()
+
+    def _make_nodes_dict_aux(self, node=None, flag=0):
+        """
+        Recursion function to create dict where the keys are the parents and the values are a list of tuples with the
+        childs and their heights.
+        :param node: node object.
+        :param flag: integer who indicate if node is left or right child.
+        """
+        if not node:
+            node = self.root
+
+        if node != self.root and node != self.leaf:
+            height = self._calculate_real_height(node)
+            if not (node.parent.key in self.nodes_dict_aux):
+                self.nodes_dict_aux[node.parent.key] = [None, None]
+            self.nodes_dict_aux[node.parent.key][flag] = (node.key, height)
+
+        if node != self.leaf:
+            self._make_nodes_dict_aux(node.left, 0)
+            self._make_nodes_dict_aux(node.right, 1)
+
+    def _make_nodes_dict(self):
+        for key in self.nodes_dict_aux:
+            nodes = self.nodes_dict_aux[key]
+            if nodes[0] and nodes[1]:
+                _, height = min(nodes, key=lambda x:x[:][1])
+                # print(nodes[0][0], nodes[1][0], height)
+                self.nodes_dict[key, height] = [nodes[0][0], nodes[1][0]]
+            else:
+                if nodes[0]:
+                    height = nodes[0][1]
+                    self.nodes_dict[key, height] = [nodes[0][0], None]
+                else:
+                    height = nodes[1][1]
+                    self.nodes_dict[key, height] = [None, nodes[1][0]]
+
+    def _calculate_real_height(self, node):
+        """
+        Calculate real height in tree of given node.
+        :param node: node object.
+        :return: numeric.
+        """
+        height = 0
+        current = node
+        while current != self.root:
+            height += 1
+            current = current.parent
+
+        return height
+
+    def _calculate_height(self, node):
+        """
+        Calculate left and right height of node.
+        :param node: node object.
+        """
+        current = node
+        while current:
+            current.height = max(current.left.height, current.right.height) + 1
+            current = current.parent
+
+    def _fix_violation(self, node):
+        """
+        Verify if is necessary rotate the node.
+        :param node: node object.
+        """
+        flag = False
+        previous = node
+        current = node.parent
+        while current:
+            fb1 = current.left.height - current.right.height
+            fb2 = previous.left.height - previous.right.height
+            if fb1 >= 2 and fb2 >= 0:
+                self._rotate_right(current)
+                flag = True
+                break
+            if fb1 <= -2 and fb2 <= 0:
+                self._rotate_left(current)
+                flag = True
+                break
+            if fb1 >= +2 and fb2 <= 0:
+                self._rotate_left(previous)
+                self._rotate_right(current)
+                flag = True
+                break
+            if fb1 <= -2 and fb2 >= 0:
+                self._rotate_right(previous)
+                self._rotate_left(current)
+                flag = True
+                break
+            previous = current
+            current = current.parent
+
+        return flag
+
+    def _rotate_left(self, x):
+        """
+        Rotate node to left.
+        :param x: node object.
+        """
+        y = x.right  # define y
+        x.right = y.left  # x right now igual y left
+        y.left.parent = x  # y left now is x left
+        y.parent = x.parent  # y parent is x parent
+
+        if x == self.root:  # if x is root now y is root
+            self.root = y
+        elif x == x.parent.left:
+            x.parent.left = y  # if x is the left child, then y is the left child
+        else:
+            x.parent.right = y  # if x is the right child, then y is the right child
+
+        y.left = x  # y left now is x
+        x.parent = y  # x parent now is y
+
+        x.height -= 2
+        self._calculate_height(x)
+
+    def _rotate_right(self, x):
+        """
+        Rotate node to right.
+        :param x: node object.
+        """
+        y = x.left
+        x.left = y.right
+        y.right.parent = x
+        y.parent = x.parent
+
+        if x == self.root:  # if x is root now y is root
+            self.root = y
+        elif x == x.parent.left:
+            x.parent.left = y  # if x is the left child, then y is the left child
+        else:
+            x.parent.right = y  # if x is the right child, then y is the right child
+
+        y.right = x
+        x.parent = y
+
+        x.height -= 2
+        self._calculate_height(x)
 
 
 if __name__ == '__main__':
     bt = AVLTree()
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    # bt.insert(11)
+    # bt.insert(2)
+    # bt.insert(14)
+    # bt.insert(1)
+    # bt.insert(7)
+    # bt.insert(15)
+    # bt.insert(5)
+    # bt.insert(8)
+    # bt.insert(4)
+    # bt.walk_in_order()
+    # print('***********************************************')
+    # print(bt.nodes_dict)
+    # print('***********************************************')
 
-    bt.insert(11)
-    bt.insert(2)
-    bt.insert(14)
-    bt.insert(1)
-    bt.insert(7)
-    bt.insert(15)
-    bt.insert(5)
-    bt.insert(8)
-    bt.insert(4)
-    # bt.bt_draw()
-
-    # bt.insert(44)
-    # bt.insert(17)
-    # bt.insert(78)
-    # bt.insert(32)
-    # bt.insert(50)
-    # bt.insert(88)
-    # bt.insert(48)
-    # bt.insert(62)
-    # bt.insert(84)
-    # bt.insert(92)
-    # bt.insert(80)
-    # bt.insert(82)
-    # bt.bt_draw()
+    bt.insert(44)
+    bt.insert(17)
+    bt.insert(78)
+    bt.insert(32)
+    bt.insert(50)
+    bt.insert(88)
+    bt.insert(48)
+    bt.insert(62)
+    bt.insert(84)
+    bt.insert(92)
+    bt.insert(80)
+    bt.insert(82)
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
+    bt.remove(32)
+    print('remove 32')
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
+    bt.remove(84)
+    print('remove 84')
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
+    bt.remove(82)
+    print('remove 82')
+    print('node\tparent\tleft\tright\theight\tfb')
+    print('***********************************************')
+    bt.walk_in_order()
+    print('***********************************************')
+    print(bt.nodes_dict)
+    print('***********************************************')
 
     # bt.insert(4)
     # bt.insert(2)
