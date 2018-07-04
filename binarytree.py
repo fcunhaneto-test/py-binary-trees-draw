@@ -203,28 +203,34 @@ class BinaryTree:
         elif node.left == self.leaf and node.right == self.leaf:
             return self._remove_if_leaf(node)
         elif (node.left == self.leaf) ^ (node.right == self.leaf):
-            self._remove_if_one_child(node)
+            return self._remove_if_one_child(node)
         else:
-            self._remove_if_two_children(node)
+            return self._remove_if_two_children(node)
 
         del node
 
         return True
 
     def _remove_if_leaf(self, node):
+        remove_key = node.key
         if node.parent.left == node:
             node.parent.left = self.leaf
         else:
             node.parent.right = self.leaf
 
         if node.parent.left.key:
-            self.nodes_dict[node.parent.key, node.height] = (node.parent.left.key, None)
+            self.nodes_dict[node.parent.key, node.height] = [node.parent.left.key, None]
         elif node.parent.right.key:
-            self.nodes_dict[node.parent.key, node.height] = (None, node.parent.right.key)
+            self.nodes_dict[node.parent.key, node.height] = [None, node.parent.right.key]
         else:
             del self.nodes_dict[node.parent.key, node.height]
 
+        del node
+
+        return remove_key, None
+
     def _remove_if_one_child(self, node):
+        remove_key = node.key
         self._recovery_children_height(node)
 
         left, right = self.nodes_dict[(node.parent.key, node.height)]
@@ -255,7 +261,10 @@ class BinaryTree:
 
         self.arrange_nodes_dict()
 
+        return remove_key, None
+
     def _remove_if_two_children(self, node):
+        remove_key = node.key
         successor = self.successor(node.key)
 
         if successor == node.right:  # case 1
@@ -283,10 +292,17 @@ class BinaryTree:
             node.left.parent = successor
             successor.parent = node.parent
 
+        del node
+
+        return remove_key, successor.key
+
     def _remove_root(self):
+        remove_key = self.root.key
         if self.root.left == self.leaf and self.root.right == self.leaf:
             self.root = None
             self.nodes_dict = {}
+
+            return remove_key, None
         elif (self.root.left == self.leaf) ^ (self.root.right == self.leaf):
             self._recovery_children_height(self.root)
             self.arrange_nodes_dict()
@@ -296,6 +312,8 @@ class BinaryTree:
                 self.root = self.root.right
 
             self.root.parent = None
+
+            return remove_key, None
         else:
             successor = self.successor(self.root.key)
             if successor == self.root.right:
@@ -317,6 +335,8 @@ class BinaryTree:
                 self.root.right.parent = successor
                 successor.parent = None
                 self.root = successor
+
+            return remove_key, successor.key
 
     def _recover_nd_rm_two_children_case1(self, node, successor):
         left, right = self.nodes_dict[(node.parent.key, node.height)]
@@ -415,6 +435,7 @@ class BinaryTree:
         self._recovery_children_height(successor)
 
         self.arrange_nodes_dict()
+
 
     def _recovery_children_height(self, node):
         children = self.search_children(node, list())
