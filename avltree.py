@@ -72,7 +72,7 @@ class AVLTree:
             fb = node.left.height - node.right.height
             if node.parent:
                 print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(node.key, node.parent.key, node.left.key, node.right.key,
-                                                            node.height, fb))
+                                                       node.height, fb))
             else:
                 print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(node.key, None, node.left.key, node.right.key,
                                                             node.height, fb))
@@ -92,7 +92,7 @@ class AVLTree:
             self.walk_pos_order(node.right)
             if node.parent:
                 print('{0}\t{1}\t{2}\t{3}\t{4}'.format(node.key, node.parent.key, node.left.key, node.right.key,
-                                                       node.height, ))
+                                                  node.height, ))
             else:
                 print('{0}\t{1}\t{2}\t{3}\t{4}'.format(node.key, None, node.left.key, node.right.key, node.height))
 
@@ -195,33 +195,37 @@ class AVLTree:
         Remove node where key is equal of given value.
         :param value: numeric
         """
+        print(value)
         node = self.search(value)
 
         if node == self.root:
-            self._remove_root()
+            return self._remove_root()
         elif node.left == self.leaf and node.right == self.leaf:
-            self._remove_if_leaf(node)
+            return self._remove_if_leaf(node)
         elif (node.left == self.leaf) ^ (node.right == self.leaf):
-            self._remove_if_one_child(node)
+            return self._remove_if_one_child(node)
         else:
-            self._remove_if_two_childs(node)
+            return self._remove_if_two_childs(node)
 
     def _remove_if_leaf(self, node):
+        remove_key = node.key
         parent = node.parent
         if parent.left == node:
             parent.left = self.leaf
         else:
             parent.right = self.leaf
 
-        node = None
-        del node
-
         self._calculate_height(parent)
         self._fix_violation(parent)
 
         self._recovery_nodes_dict()
 
+        del node
+
+        return remove_key, None
+
     def _remove_if_one_child(self, node):
+        remove_key = node.key
         if node.parent.left == node:
             if node.right == self.leaf:
                 node.parent.left = node.left
@@ -241,7 +245,12 @@ class AVLTree:
 
         self._recovery_nodes_dict()
 
+        del node
+
+        return remove_key, None
+
     def _remove_if_two_childs(self, node):
+        remove_key = node.key
         successor = self.successor(node.key)
 
         if successor == node.right:
@@ -272,7 +281,13 @@ class AVLTree:
 
         self._recovery_nodes_dict()
 
+        del node
+
+        return remove_key, successor.key
+
     def _remove_root(self):
+        remove_key = self.root.key
+        successor = None
         if self.root.left == self.leaf and self.root.right == self.leaf:
             self.root = None
         elif (self.root.left == self.leaf) ^ (self.root.right == self.leaf):
@@ -308,6 +323,11 @@ class AVLTree:
 
         self._recovery_nodes_dict()
 
+        if successor:
+            return remove_key, successor.key
+        else:
+            return remove_key, None
+
     def _recovery_nodes_dict(self):
         # Because fixing the violations mess up the heights of each node we have to first create a dict where the
         # keys are the parents and the values are a list of tuples with the childs and their heights.
@@ -342,7 +362,7 @@ class AVLTree:
         for key in self.nodes_dict_aux:
             nodes = self.nodes_dict_aux[key]
             if nodes[0] and nodes[1]:
-                _, height = min(nodes, key=lambda x: x[:][1])
+                _, height = min(nodes, key=lambda x:x[:][1])
                 # print(nodes[0][0], nodes[1][0], height)
                 self.nodes_dict[key, height] = [nodes[0][0], nodes[1][0]]
             else:
