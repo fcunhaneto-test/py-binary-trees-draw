@@ -20,15 +20,15 @@ class DrawTree:
                          65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G', 72: 'H', 73: 'I', 74: 'J',
                          75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 80: 'P', 81: 'Q', 82: 'R', 83: 'S', 84: 'T',
                          85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z', 60: '<', 61: '=', 62: '<', 32: 'space'
-                         } # 32: 'space', 27: 'esc', 273: 'up', 274: 'down', 276: 'left', 275: 'right'
+                         }  # 32: 'space', 27: 'esc', 273: 'up', 274: 'down', 276: 'left', 275: 'right'
 
         self.BLACK = (0, 0, 0)
         self.WHITE = (255, 255, 255)
         self.RED = (255, 0, 0)
         self.BLUE = (0, 0, 255)
-        self.GREEN = (0,255,0)
+        self.GREEN = (0, 255, 0)
         self.YELLOW = (255, 255, 0)
-        self.MAGENTA = (255,0,255)
+        self.MAGENTA = (255, 0, 255)
         self.GRAY = (190, 190, 190)
 
         self.RADIUS = 25
@@ -38,13 +38,14 @@ class DrawTree:
 
         # Define windows size
         self.window_x = 1024
-        self.window_y = 768
+        self.window_y = 680
 
         window_info = pygame.display.Info()
         monitor_width = window_info.current_w
         monitor_height = window_info.current_h
 
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitor_width - self.window_x) / 2, (monitor_height - self.window_y) / 2)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (
+        (monitor_width - self.window_x) / 2, (monitor_height - self.window_y) / 2)
 
         self.screen = pygame.display.set_mode((self.window_x, self.window_y), 0, 32)
 
@@ -109,7 +110,7 @@ class DrawTree:
     def make_points_lines(self):
         if self.bt:
             root_x = int(self.window_x / 2)
-            root_y = 0
+            root_y = 10
             self.points_dict[self.bt.root.key] = (root_x, root_y + self.RADIUS)
             if self.bt.nodes_dict:
                 _, tree_height = max(self.bt.nodes_dict.keys(), key=lambda x: x[1])
@@ -121,7 +122,7 @@ class DrawTree:
                 division_pixel_center = int(division_pixel / 2)
 
                 root_x = (x_division_center * division_pixel) + division_pixel_center
-                root_y = 0
+                root_y = 10
 
                 self.points_dict = {self.bt.root.key: (root_x, root_y + self.RADIUS)}
 
@@ -133,13 +134,13 @@ class DrawTree:
 
                     if left:
                         x = abs(parent_x - int(root_x / (2 ** height)))
-                        y = self.y_factor * height
+                        y = self.y_factor * height + 10
                         self.points_dict[left] = (x, y)
                         line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
                         lines[(parent, left)] = line
                     if right:
                         x = abs(parent_x + int(root_x / (2 ** height)))
-                        y = self.y_factor * height
+                        y = self.y_factor * height + 10
                         self.points_dict[right] = (x, y)
                         line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
                         lines[(parent, right)] = line
@@ -170,8 +171,6 @@ class DrawTree:
                 font_x_delta = int(font_x - (self.RADIUS / 4))
                 font_y_delta = int(font_y - (self.RADIUS / 4))
 
-                # pygame.draw.circle(self.screen, color, (x, y), self.RADIUS, 2)
-
                 self.screen.blit(text, [x - font_x_delta, y - font_y_delta])
 
             for line in self.lines_dict:
@@ -184,7 +183,6 @@ class DrawTree:
                 pygame.draw.aaline(self.screen, self.BLACK, [x, y], [r, s], 2)
 
     def before_remove(self, remove_key, successor_key=None):
-
         clock = pygame.time.Clock()
         while True:
             for event in pygame.event.get():

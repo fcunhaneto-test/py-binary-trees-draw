@@ -436,7 +436,6 @@ class BinaryTree:
 
         self.arrange_nodes_dict()
 
-
     def _recovery_children_height(self, node):
         children = self.search_children(node, list())
         keys = set()
