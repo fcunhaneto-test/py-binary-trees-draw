@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from node import Node
-import drawtree
-
 
 class AVLTree:
     def __init__(self):
