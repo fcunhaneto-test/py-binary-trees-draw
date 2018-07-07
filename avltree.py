@@ -205,7 +205,7 @@ class AVLTree:
         elif (node.left == self.leaf) ^ (node.right == self.leaf):
             return self._remove_if_one_child(node)
         else:
-            return self._remove_if_two_childs(node)
+            return self._remove_if_two_children(node)
 
     def _remove_if_leaf(self, node):
         remove_key = node.key
@@ -249,7 +249,7 @@ class AVLTree:
 
         return remove_key, None
 
-    def _remove_if_two_childs(self, node):
+    def _remove_if_two_children(self, node):
         remove_key = node.key
         successor = self.successor(node.key)
 
