@@ -46,10 +46,6 @@ class BinaryTree:
                 parent.right = node
                 self.nodes_dict[(node.parent.key, node.height)][1] = node.key
 
-            return self.nodes_dict
-
-        return None
-
     def walk_in_order(self, node=None):
         """
         Walking tree in pre-order.
@@ -206,10 +202,6 @@ class BinaryTree:
             return self._remove_if_one_child(node)
         else:
             return self._remove_if_two_children(node)
-
-        del node
-
-        return True
 
     def _remove_if_leaf(self, node):
         remove_key = node.key
@@ -470,25 +462,24 @@ if __name__ == '__main__':
     bt = BinaryTree()
     print('node\tparent\tleft\tright\theight\tfb')
     print('***********************************************')
-    bt.insert(50)
-    bt.insert(25)
-    bt.insert(75)
+    bt.insert(11)
+    bt.insert(2)
+    bt.insert(14)
+    bt.insert(1)
+    bt.insert(7)
     bt.insert(15)
-    bt.insert(10)
     bt.insert(5)
-    bt.insert(20)
-    bt.insert(80)
-    bt.insert(90)
-    bt.insert(85)
+    bt.insert(8)
+    bt.insert(4)
     bt.walk_in_order()
-    print('***********************************************')
-    print(bt.nodes_dict)
-    print('***********************************************')
-    bt.remove(50)
-    print('***********************************************')
-    print('node\tparent\tleft\tright\theight\tfb')
-    print('***********************************************')
-    bt.walk_in_order()
-    print('***********************************************')
-    print(bt.nodes_dict)
-    print('***********************************************')
+    # print('***********************************************')
+    # print(bt.nodes_dict)
+    # print('***********************************************')
+    # bt.remove(50)
+    # print('***********************************************')
+    # print('node\tparent\tleft\tright\theight\tfb')
+    # print('***********************************************')
+    # bt.walk_in_order()
+    # print('***********************************************')
+    # print(bt.nodes_dict)
+    # print('***********************************************')

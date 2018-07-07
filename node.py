@@ -6,4 +6,4 @@ class Node:
         self.parent = None
         self.height = 0
         self.real_height = 0
-        self.color = 0
+        self.color = 1
