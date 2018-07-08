@@ -193,7 +193,6 @@ class AVLTree:
         Remove node where key is equal of given value.
         :param value: numeric
         """
-        print(value)
         node = self.search(value)
 
         if node == self.root:
