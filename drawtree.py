@@ -4,8 +4,9 @@
 import os
 import time
 import pygame
-import binarytest
-import avltest
+import binarytree
+import avltree
+import rbtree
 
 
 class DrawTree:
@@ -65,8 +66,6 @@ class DrawTree:
 
         self.bt = None
 
-        self.nodes_dict = {}
-
         self.enter_value = ""
         self.current_value = None
 
@@ -103,9 +102,12 @@ class DrawTree:
             except ValueError:
                 return False
 
-    def input_values(self, value):
+    def input_values(self, value, tree):
         self.bt.insert(value)
-        self.make_points_lines()
+        if tree == 'bin' or tree == 'avl':
+            self.make_points_lines()
+        else:
+            self.make_points_lines_rbt()
 
     def make_points_lines(self):
         if self.bt:
@@ -149,22 +151,61 @@ class DrawTree:
         else:
             image = pygame.image.load('images/error_not_tree_en.png').convert()
 
-    def draw_nodes(self, value, successor_key=None, remove=False):
+    def make_points_lines_rbt(self):
+        if self.bt:
+            root_x = int(self.window_x / 2)
+            root_y = 10
+            self.points_dict[self.bt.root.key] = (root_x, root_y + self.RADIUS, 1)
+            if self.bt.nodes_dict:
+                _, tree_height = max(self.bt.nodes_dict.keys(), key=lambda x: x[1])
+
+                leaf_num = 2 ** tree_height
+                division = leaf_num + 1
+                x_division_center = int(leaf_num / 2)
+                division_pixel = int(self.window_x / division)
+                division_pixel_center = int(division_pixel / 2)
+
+                root_x = (x_division_center * division_pixel) + division_pixel_center
+                root_y = 10
+
+                self.points_dict = {self.bt.root.key: (root_x, root_y + self.RADIUS, 1)}
+
+                lines = {}
+                for key in self.bt.nodes_dict:
+                    parent, height = key
+                    node_1, node_2 = self.bt.nodes_dict[key]
+                    parent_x, parent_y, _ = self.points_dict[parent]
+
+                    if node_1:
+                        left, color = node_1
+                        x = abs(parent_x - int(root_x / (2 ** height)))
+                        y = self.y_factor * height + 10
+                        self.points_dict[left] = (x, y, color)
+                        line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
+                        lines[(parent, left)] = line
+                    if node_2:
+                        right, color = node_2
+                        x = abs(parent_x + int(root_x / (2 ** height)))
+                        y = self.y_factor * height + 10
+                        self.points_dict[right] = (x, y, color)
+                        line = [(parent_x, parent_y + self.RADIUS), (x, y - self.RADIUS)]
+                        lines[(parent, right)] = line
+
+                    self.lines_dict = lines
+        else:
+            image = pygame.image.load('images/error_not_tree_en.png').convert()
+
+    def draw_nodes_remove(self, value, successor_key):
         if self.points_dict:
             for node in self.points_dict:
                 x, y = self.points_dict[node]
-                if not remove:
-                    if node != value:
-                        pygame.draw.circle(self.screen, self.BLACK, (x, y), self.RADIUS, 2)
-                    else:
-                        pygame.draw.circle(self.screen, self.RED, (x, y), self.RADIUS, 4)
-                else:
-                    if node != value:
-                        pygame.draw.circle(self.screen, self.BLACK, (x, y), self.RADIUS, 2)
-                    if node == value:
-                        pygame.draw.circle(self.screen, self.MAGENTA, (x, y), self.RADIUS)
-                    if node == successor_key:
-                        pygame.draw.circle(self.screen, self.GREEN, (x, y), self.RADIUS)
+
+                if node != value:
+                    pygame.draw.circle(self.screen, self.BLACK, (x, y), self.RADIUS, 2)
+                if node == value:
+                    pygame.draw.circle(self.screen, self.MAGENTA, (x, y), self.RADIUS)
+                if node == successor_key:
+                    pygame.draw.circle(self.screen, self.GREEN, (x, y), self.RADIUS)
 
                 text = self.font_2.render(str(node), True, self.BLACK)
                 _, _, font_x, font_y = text.get_rect()
@@ -180,9 +221,59 @@ class DrawTree:
                 x, y = line_points[0]
                 r, s = line_points[1]
 
-                pygame.draw.aaline(self.screen, self.BLACK, [x, y], [r, s], 2)
+                pygame.draw.aaline(self.screen, self.BLACK, [x, y], [r, s])
 
-    def before_remove(self, remove_key, successor_key=None):
+    def draw_nodes(self, value):
+        if self.points_dict:
+            for node in self.points_dict:
+                x, y = self.points_dict[node]
+                if node != value:
+                    pygame.draw.circle(self.screen, self.BLACK, (x, y), self.RADIUS, 2)
+                else:
+                    pygame.draw.circle(self.screen, self.RED, (x, y), self.RADIUS, 4)
+
+                text = self.font_2.render(str(node), True, self.BLACK)
+                _, _, font_x, font_y = text.get_rect()
+                font_x_delta = int(font_x - (self.RADIUS / 4))
+                font_y_delta = int(font_y - (self.RADIUS / 4))
+
+                self.screen.blit(text, [x - font_x_delta, y - font_y_delta])
+
+            for line in self.lines_dict:
+                _, insert = line
+                line_points = self.lines_dict[line]
+
+                x, y = line_points[0]
+                r, s = line_points[1]
+
+                pygame.draw.aaline(self.screen, self.BLACK, [x, y], [r, s])
+
+    def draw_nodes_rbt(self, value):
+        if self.points_dict:
+            for node in self.points_dict:
+                x, y, color = self.points_dict[node]
+                if color == 1:
+                    pygame.draw.circle(self.screen, self.BLACK, (x, y), self.RADIUS)
+                else:
+                    pygame.draw.circle(self.screen, self.RED, (x, y), self.RADIUS)
+
+                text = self.font_2.render(str(node), True, self.WHITE)
+                _, _, font_x, font_y = text.get_rect()
+                font_x_delta = int(font_x - (self.RADIUS / 4))
+                font_y_delta = int(font_y - (self.RADIUS / 4))
+
+                self.screen.blit(text, [x - font_x_delta, y - font_y_delta])
+
+            for line in self.lines_dict:
+                _, insert = line
+                line_points = self.lines_dict[line]
+
+                x, y = line_points[0]
+                r, s = line_points[1]
+
+                pygame.draw.aaline(self.screen, self.BLACK, [x, y], [r, s])
+
+    def remove(self, remove_key, successor_key=None):
         clock = pygame.time.Clock()
         while True:
             for event in pygame.event.get():
@@ -194,7 +285,7 @@ class DrawTree:
 
             self.draw_input()
 
-            self.draw_nodes(remove_key, successor_key, True)
+            self.draw_nodes_remove(remove_key, successor_key)
 
             clock.tick(30)
 
@@ -204,6 +295,7 @@ class DrawTree:
         clock = pygame.time.Clock()
 
         value = None
+        command = None
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -219,26 +311,34 @@ class DrawTree:
                     elif event.key == 13 or event.key == 271:
                         value = self.type_is_numeric(self.enter_value)
                         if value:
-                            # print(value)
-                            self.input_values(value)
+                            self.input_values(value, command)
                         else:
-                            if self.enter_value == 'bin':
-                                self.bt = binarytest.BinaryTree()
-                            elif self.enter_value == 'avl':
-                                self.bt = avltest.AVLTree()
-                            elif self.enter_value[0:3] == 'rm=':
+                            command = self.enter_value[0:3]
+                            if command == 'bin':
+                                self.bt = binarytree.BinaryTree()
+                            elif command == 'avl':
+                                self.bt = avltree.AVLTree()
+                            elif command == 'rbt':
+                                self.bt = rbtree.RBTree()
+                            elif command == 'rm=':
                                 _, value = self.enter_value.split('=')
                                 num = self.type_is_numeric(value)
                                 remove_key, successor = self.bt.remove(num)
-                                self.before_remove(remove_key, successor)
+                                self.remove(remove_key, successor)
                                 self.enter_value = ""
+                                self.make_points_lines()
+                            elif command == 'cls':
+                                self.points_dict = {}
+                                self.lines_dict = {}
+                                self.bt.nodes_dict = {}
+                                self.bt = None
                                 self.make_points_lines()
 
                         self.enter_value = ""
                     elif event.key == 27:
                         pygame.quit()
                         exit()
-                    elif event.key == 8:
+                    elif event.key == 8: # backspace
                         if self.enter_value:
                             x = len(self.enter_value)
                             self.enter_value = self.enter_value[0:x - 1]
@@ -247,8 +347,14 @@ class DrawTree:
 
             self.draw_input()
 
-            if self.bt:
+            if command == 'bin' or command == 'avl' or command == 'rm=':
                 self.draw_nodes(value)
+            elif command == 'rbt':
+                self.draw_nodes_rbt(value)
+            elif command == 'cls':
+                self.draw_nodes(None)
+                self.screen.blit(self.image, (283, 200))
+                pygame.draw.aaline(self.screen, self.RED, [110, 40], [424, 200], 2)
             else:
                 self.screen.blit(self.image, (283, 200))
                 pygame.draw.aaline(self.screen, self.RED, [110, 40], [424, 200], 2)
