@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
 import pygame
 import binarytree
 import avltree
@@ -20,7 +19,7 @@ class DrawTree:
                          114: 'r', 115: 's', 116: 't', 117: 'u', 118: 'v', 119: 'w', 120: 'x', 121: 'y', 122: 'z',
                          65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G', 72: 'H', 73: 'I', 74: 'J',
                          75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 80: 'P', 81: 'Q', 82: 'R', 83: 'S', 84: 'T',
-                         85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z', 60: '<', 61: '=', 62: '<', 32: 'space'
+                         85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z', 61: '=', 32: 'space', 45: '-', 269: '-'
                          }  # 32: 'space', 27: 'esc', 273: 'up', 274: 'down', 276: 'left', 275: 'right'
 
         self.BLACK = (0, 0, 0)
@@ -103,11 +102,14 @@ class DrawTree:
                 return False
 
     def input_values(self, value, tree):
-        self.bt.insert(value)
         if tree == 'bin' or tree == 'avl':
+            self.bt.insert(value)
             self.make_points_lines()
-        else:
+        elif tree == 'rbt':
+            self.bt.insert(value)
             self.make_points_lines_rbt()
+
+        return None
 
     def make_points_lines(self):
         if self.bt:
@@ -296,13 +298,14 @@ class DrawTree:
 
         value = None
         command = None
+        tree_type = None
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
                 if event.type == pygame.KEYUP:
-                    if (256 <= event.key <= 266) or (48 <= event.key <= 57) or event.key == 46:
+                    if (256 <= event.key <= 266) or (48 <= event.key <= 57) or event.key == 46 or event.key == 45 or event.key == 269:
                         pressed = self.key_dict[event.key]
                         self.enter_value += pressed
                     elif (97 <= event.key <= 122) or (65 <= event.key <= 90) or event.key == 61:
@@ -316,23 +319,30 @@ class DrawTree:
                             command = self.enter_value[0:3]
                             if command == 'bin':
                                 self.bt = binarytree.BinaryTree()
+                                tree_type = 'bin'
                             elif command == 'avl':
                                 self.bt = avltree.AVLTree()
+                                tree_type = 'avl'
                             elif command == 'rbt':
                                 self.bt = rbtree.RBTree()
-                            elif command == 'rm=':
-                                _, value = self.enter_value.split('=')
-                                num = self.type_is_numeric(value)
-                                remove_key, successor = self.bt.remove(num)
-                                self.remove(remove_key, successor)
-                                self.enter_value = ""
-                                self.make_points_lines()
+                                tree_type = 'rbt'
                             elif command == 'cls':
                                 self.points_dict = {}
                                 self.lines_dict = {}
                                 self.bt.nodes_dict = {}
                                 self.bt = None
                                 self.make_points_lines()
+                            elif command == 'rm=':
+                                _, value = self.enter_value.split('=')
+                                num = self.type_is_numeric(value)
+                                remove_key, successor = self.bt.remove(num)
+                                if tree_type == 'rbt':
+                                    self.make_points_lines_rbt()
+                                else:
+                                    self.remove(remove_key, successor)
+                                    self.make_points_lines()
+
+                                self.enter_value = ""
 
                         self.enter_value = ""
                     elif event.key == 27:
@@ -347,10 +357,15 @@ class DrawTree:
 
             self.draw_input()
 
-            if command == 'bin' or command == 'avl' or command == 'rm=':
+            if tree_type == 'bin' or tree_type == 'avl':
                 self.draw_nodes(value)
-            elif command == 'rbt':
+            elif tree_type == 'rbt':
                 self.draw_nodes_rbt(value)
+            elif command == 'rm=':
+                if tree_type == 'bin' or tree_type == 'avl':
+                    self.draw_nodes_rbt(value)
+                else:
+                    self.draw_nodes_rbt(value)
             elif command == 'cls':
                 self.draw_nodes(None)
                 self.screen.blit(self.image, (283, 200))
