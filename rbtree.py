@@ -1,7 +1,6 @@
 #!/home/francisco/Projects/Pycharm/pyalgorithms/venv/bin/python3
 # -*- coding: utf-8 -*-
 
-from math import inf
 from node import Node
 
 BLACK = 1
